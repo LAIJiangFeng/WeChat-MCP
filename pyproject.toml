@@ -60,4 +60,4 @@ path = "wechat_mcp/__init__.py"
 packages = ["wechat_mcp", "wechat_decrypt"]
 
 [tool.hatch.build.targets.sdist]
-include = ["wechat_mcp", "wechat_decrypt", "tests", "README.md", "LICENSE", "pyproject.toml"]
+include = ["wechat_mcp", "wechat_decrypt", "README.md", "LICENSE", "pyproject.toml"]

@@ -35,7 +35,7 @@ wechat-backup-refresh              # 同步一次
 wechat-backup-refresh --watch 60   # 常驻，每 60 秒自动同步
 ```
 
-**架构与安全边界**：MCP 服务端（`wechat_mcp`）是**跨平台、纯只读**的，本体不含任何解密/密钥/进程内存代码——这一点由 `tests/test_boundary.py` 强制保证。解密工具（`wechat_decrypt`）是独立的 Windows 专属命令，装在与服务端不同的环境里。设计参考 [NoCannoBB《微信记录 AI 助手》](https://nocannobb.com/course/wechat-ai-assistant/04-NoCannoBB-Skill)。
+**架构与安全边界**：MCP 服务端（`wechat_mcp`）是**跨平台、纯只读**的，本体不含任何解密/密钥/进程内存代码（可自行 `grep` 核验：它只 import 标准库、`zstandard`、`mcp` 与 `typesafe_sdk`）。解密所需的 `pycryptodome`/`psutil`/`pefile` 收在 `[decrypt]` 可选依赖里，基础安装的服务端环境里根本没有，物理上无法解密。解密工具（`wechat_decrypt`）是独立的 Windows 专属命令，装在与服务端不同的环境。设计参考 [NoCannoBB《微信记录 AI 助手》](https://nocannobb.com/course/wechat-ai-assistant/04-NoCannoBB-Skill)。
 
 macOS / Linux 用户：解密只能在 Windows 上做，但你可以把 Windows 上生成的明文备份拷过来，然后用 `wechat-backup-setup --configure-only --backup-dir <目录>` 只生成配置。
 
@@ -171,13 +171,11 @@ Skill 会完成这类编排：
 
 压缩消息需要逐条 zstd 解压后匹配，且数据库以只读方式打开，项目不会偷偷创建索引。先缩小到具体会话使用 `read_chat_history`；只有实测需要时再考虑单独构建本地全文索引。
 
-## 开发与测试
+## 本地开发
 
 ```powershell
 git clone https://github.com/LAIJiangFeng/WeChat-MCP
 cd WeChat-MCP
-uv sync --extra decrypt     # decrypt extra 供解密工具和 sqlcipher 测试使用
-uv run python -m unittest   # 49 项测试，全程离线
+uv sync --extra decrypt     # decrypt extra 供解密工具使用
+uv run wechat-backup-mcp    # 本地起服务端（需先设 WECHAT_BACKUP_DIR）
 ```
-
-`tests/test_boundary.py` 保证服务端不引入任何解密/密钥能力；`tests/test_sqlcipher4.py` 用合成数据验证解密核心；均不需要真实微信。
