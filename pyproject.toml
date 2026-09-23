@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wechat-backup-mcp"
+dynamic = ["version"]
+description = "Read-only MCP server for your own local WeChat 4.x chat history, with a Windows setup wizard that produces the plaintext backup"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["mcp", "model-context-protocol", "wechat", "weixin", "chat-history", "sqlcipher"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Communications :: Chat",
+  "Topic :: Utilities",
+]
+
+# Base install is the read-only MCP server only: no crypto, no process access.
+dependencies = [
+  "mcp>=1.26,<2",
+  "typesafe-sdk>=0.7.0",
+  "zstandard>=0.23,<1",
+]
+
+[project.optional-dependencies]
+# Windows-only decryption and incremental refresh. The MCP server never needs
+# these, and when they are absent the decryption code physically cannot run.
+decrypt = [
+  "pycryptodome>=3.20",
+  "psutil>=5.9",
+  "pefile>=2023.2.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/LAIJiangFeng/WeChat-MCP"
+Issues = "https://github.com/LAIJiangFeng/WeChat-MCP/issues"
+
+[project.scripts]
+wechat-backup-mcp     = "wechat_mcp.server:main"           # the MCP server (stdio)
+wechat-backup-setup   = "wechat_decrypt.wizard:main"       # interactive install wizard
+wechat-backup-decrypt = "wechat_decrypt.main_win:main"     # advanced: one-off full decrypt
+wechat-backup-refresh = "wechat_decrypt.refresh_win:main"  # advanced: incremental / --watch
+
+[tool.hatch.version]
+path = "wechat_mcp/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+# Ships wechat_mcp/skill/SKILL.md too, which matters because users who install
+# with uvx never clone the repository.
+packages = ["wechat_mcp", "wechat_decrypt"]
+
+[tool.hatch.build.targets.sdist]
+include = ["wechat_mcp", "wechat_decrypt", "tests", "README.md", "LICENSE", "pyproject.toml"]

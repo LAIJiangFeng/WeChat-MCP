@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.py[cod]
+.research/
+dist/
+.env
+
+# Never commit plaintext WeChat data.
+*.db
+*.db-wal
+*.db-shm
+backup/
+decrypted/
+wx_plain/
+
+# Scratch copies of vendor docs
+.tsdocs/
+_decrypt_test/
+wechat_backup/
+*.db.part
+*.part
+*.dpapi
+*.new
